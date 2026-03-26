@@ -1,0 +1,1236 @@
+<!-- Copyright © 2026 Northwind Pulse™. All rights reserved. -->
+<!DOCTYPE html>
+<html data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTok Content Performance</title>
+  <!-- GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W8B4PX0EFW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-W8B4PX0EFW');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Flash prevention ──────────────────────────────────── */
+    html { background: #000; }
+    html[data-theme="light"] { background: #f0f4ff; }
+
+    /* ── Design tokens ─────────────────────────────────────── */
+    :root {
+      --bg:       #080e1c;
+      --surface:  rgba(255,255,255,.055);
+      --surface2: rgba(255,255,255,.03);
+      --border:   rgba(255,255,255,.08);
+      --text:     #e7ecff;
+      --muted:    #a7b1d6;
+      --primary:  #5a9fc2;
+      --primary2: #3d7fa0;
+      --accent:   #8b5cf6;
+      --good:     #10b981;
+      --warn:     #f59e0b;
+      --bad:      #ef4444;
+    }
+    [data-theme="light"] {
+      --bg:       #f0f4ff;
+      --surface:  rgba(255,255,255,.92);
+      --surface2: rgba(255,255,255,.75);
+      --border:   rgba(0,0,0,.09);
+      --text:     #1a2142;
+      --muted:    #5c6690;
+      --primary:  #1a7aaa;
+      --primary2: #0f5a80;
+      --accent:   #7c3aed;
+      --good:     #059669;
+      --warn:     #d97706;
+      --bad:      #dc2626;
+    }
+
+    /* ── Colour schemes ─────────────────────────────────────── */
+    html.scheme-creator { --primary:#a855f7; --primary2:#7c3aed; --accent:#06b6d4; --warn:#f59e0b; }
+    html.scheme-slate   { --primary:#78909c; --primary2:#546e7a; --accent:#90a4ae; --warn:#fb923c; }
+    html.scheme-ocean   { --primary:#0ea5e9; --primary2:#0284c7; --accent:#22d3ee; --warn:#f97316; }
+    html.scheme-sunset  { --primary:#f97316; --primary2:#ea580c; --accent:#ec4899; --warn:#8b5cf6; }
+    html.scheme-forest  { --primary:#10b981; --primary2:#059669; --accent:#34d399; --warn:#fde047; }
+    html.scheme-rose    { --primary:#e879f9; --primary2:#d946ef; --accent:#a855f7; --warn:#06b6d4; }
+    html.scheme-creator[data-theme="light"] { --primary:#7c3aed; --primary2:#6d28d9; --accent:#0284c7; --warn:#d97706; }
+    html.scheme-slate[data-theme="light"]   { --primary:#546e7a; --primary2:#37474f; --accent:#607d8b; --warn:#ea580c; }
+    html.scheme-ocean[data-theme="light"]   { --primary:#0284c7; --primary2:#0369a1; --accent:#0ea5e9; --warn:#ea580c; }
+    html.scheme-sunset[data-theme="light"]  { --primary:#ea580c; --primary2:#c2410c; --accent:#db2777; --warn:#7c3aed; }
+    html.scheme-forest[data-theme="light"]  { --primary:#059669; --primary2:#047857; --accent:#10b981; --warn:#ca8a04; }
+    html.scheme-rose[data-theme="light"]    { --primary:#d946ef; --primary2:#a21caf; --accent:#9333ea; --warn:#0891b2; }
+
+    /* ── Scheme pill bar ────────────────────────────────────── */
+    .scheme-pills { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .scheme-pill {
+      display:flex; align-items:center; gap:6px;
+      background:transparent; border:1.5px solid var(--border);
+      border-radius:100px; padding:6px 13px;
+      font-size:12px; font-weight:600; color:var(--muted);
+      cursor:pointer; transition:border-color .18s, color .18s, background .18s;
+      white-space:nowrap;
+    }
+    .scheme-pill:hover { border-color:var(--primary); color:var(--text); }
+    .scheme-pill.active { background:rgba(255,255,255,.07); border-color:var(--primary); color:var(--text); }
+    [data-theme="light"] .scheme-pill.active { background:rgba(0,0,0,.05); }
+    .scheme-swatch { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 15% 0%, rgba(90,159,194,.18), transparent 60%),
+        radial-gradient(900px  600px at 85% 5%, rgba(139,92,246,.12), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    [data-theme="light"] body {
+      background:
+        radial-gradient(1200px 700px at 15% 0%, rgba(90,159,194,.07), transparent 60%),
+        radial-gradient(900px  600px at 85% 5%, rgba(139,92,246,.05), transparent 55%),
+        var(--bg);
+    }
+
+    /* ── Top bar ───────────────────────────────────────────── */
+    .topbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 24px; border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.22); backdrop-filter:blur(12px);
+      position:sticky; top:0; z-index:20;
+      gap:12px; flex-wrap:wrap;
+    }
+    [data-theme="light"] .topbar { background:rgba(255,255,255,.82); border-bottom-color:rgba(0,0,0,.08); }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand-dot {
+      width:10px; height:10px; border-radius:50%;
+      background:var(--primary); box-shadow:0 0 8px var(--primary);
+      flex-shrink:0;
+    }
+    .brand-text { display:flex; flex-direction:column; }
+    .brand-title { font-size:16px; font-weight:800; letter-spacing:.2px; }
+    .brand-subtitle { font-size:11px; color:var(--muted); margin-top:1px; }
+    .topbar-right { display:flex; gap:8px; align-items:center; }
+    .icon-btn {
+      border:1px solid var(--border); background:rgba(255,255,255,.04);
+      color:var(--text); padding:8px 13px; border-radius:10px;
+      font-size:13px; cursor:pointer; white-space:nowrap;
+    }
+    .icon-btn:hover { background:rgba(255,255,255,.09); }
+    [data-theme="light"] .icon-btn { background:rgba(255,255,255,.70); }
+
+    /* ── Layout ────────────────────────────────────────────── */
+    .container {
+      width:min(1340px, calc(100% - 32px));
+      margin:20px auto 56px;
+      display:flex; flex-direction:column; gap:14px;
+    }
+
+    .card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:16px; padding:18px 20px;
+      box-shadow:0 8px 28px rgba(0,0,0,.22);
+    }
+    [data-theme="light"] .card { box-shadow:0 4px 18px rgba(0,0,0,.08); }
+    .card-title { font-weight:800; font-size:14px; }
+    .card-subtitle { margin-top:3px; color:var(--muted); font-size:12px; }
+
+    /* ── Profile strip ─────────────────────────────────────── */
+    .profile-strip {
+      display:flex; align-items:center; gap:20px;
+      flex-wrap:wrap;
+    }
+    .profile-icon {
+      font-size:36px; line-height:1; flex-shrink:0;
+    }
+    .profile-info { flex:1; min-width:160px; }
+    .profile-name { font-size:18px; font-weight:800; }
+    .profile-handle { font-size:13px; color:var(--muted); margin-top:2px; }
+    .profile-stats {
+      display:flex; gap:24px; flex-wrap:wrap; margin-left:auto;
+    }
+    .profile-stat { text-align:center; }
+    .profile-stat-value { font-size:20px; font-weight:800; color:var(--primary); }
+    .profile-stat-label { font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+
+    /* ── Filters ───────────────────────────────────────────── */
+    .filters-grid {
+      display:grid; grid-template-columns:1fr 1fr auto;
+      gap:10px; margin-top:12px; align-items:end;
+    }
+    @media(max-width:560px) { .filters-grid { grid-template-columns:1fr 1fr; } }
+
+    .field label {
+      display:block; color:var(--muted);
+      font-size:10px; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; margin-bottom:5px;
+    }
+    select {
+      width:100%; padding:8px 28px 8px 10px;
+      border-radius:10px; border:1px solid var(--border);
+      background:rgba(14,22,52,.92); color:var(--text);
+      font-size:13px; outline:none; appearance:none; color-scheme:dark;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a7b1d6'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;
+    }
+    select:focus { border-color:var(--primary); }
+    [data-theme="light"] select { background:#ffffff; color:#1a2142; color-scheme:light; border-color:rgba(0,0,0,.15); }
+
+    .reset-btn {
+      border:1px solid var(--border); background:rgba(255,255,255,.04);
+      color:var(--muted); padding:8px 14px; border-radius:10px;
+      font-size:13px; cursor:pointer; white-space:nowrap; height:36px;
+    }
+    .reset-btn:hover { background:rgba(255,255,255,.08); color:var(--text); }
+
+    /* ── Section label ─────────────────────────────────────── */
+    .section-label {
+      font-size:10px; font-weight:700; letter-spacing:.8px;
+      text-transform:uppercase; color:var(--muted); padding:4px 0 2px;
+    }
+
+    /* ── KPI row ────────────────────────────────────────────── */
+    .kpi-row {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    }
+    @media(max-width:860px) { .kpi-row { grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:480px) { .kpi-row { grid-template-columns:1fr 1fr; } }
+
+    .kpi-pill {
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:14px; padding:14px 16px;
+    }
+    .kpi-pill.highlight { border-color:var(--primary); }
+    .kpi-pill.highlight .kpi-value { color:var(--primary); }
+    .kpi-pill.accent    { border-color:var(--accent); }
+    .kpi-pill.accent .kpi-value { color:var(--accent); }
+    .kpi-pill.warn-pill { border-color:var(--accent); }
+    .kpi-pill.warn-pill .kpi-value { color:var(--accent); }
+
+    .kpi-label {
+      font-size:10px; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; color:var(--muted); margin-bottom:6px;
+    }
+    .kpi-value { font-size:22px; font-weight:800; line-height:1; color:var(--text); }
+    .kpi-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
+    .delta {
+      display:inline-block; font-size:10px; font-weight:700;
+      padding:2px 6px; border-radius:6px; margin-left:6px; vertical-align:middle;
+    }
+    .delta.up   { background:rgba(16,185,129,.15); color:var(--good); }
+    .delta.down { background:rgba(239,68,68,.15);  color:var(--bad); }
+    .delta.flat { background:rgba(167,177,214,.1); color:var(--muted); }
+
+    /* ── Chart rows ────────────────────────────────────────── */
+    .chart-row-1-1 {
+      display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    }
+    @media(max-width:860px) { .chart-row-1-1 { grid-template-columns:1fr; } }
+
+    .chart-wrap {
+      position:relative; height:260px; margin-top:14px;
+    }
+    .chart-wrap-lg {
+      position:relative; height:340px; margin-top:14px;
+    }
+
+    /* ── Videos table ──────────────────────────────────────── */
+    .table-wrap { overflow-x:auto; margin-top:14px; }
+    table {
+      width:100%; border-collapse:collapse;
+      font-size:13px; min-width:620px;
+    }
+    thead th {
+      text-align:left; padding:8px 10px;
+      font-size:10px; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; color:var(--muted);
+      border-bottom:1px solid var(--border);
+      cursor:pointer; user-select:none; white-space:nowrap;
+    }
+    thead th:hover { color:var(--text); }
+    thead th .sort-icon { margin-left:4px; opacity:.5; }
+    thead th.sorted { color:var(--primary); }
+    thead th.sorted .sort-icon { opacity:1; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background .12s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:rgba(255,255,255,.03); }
+    [data-theme="light"] tbody tr:hover { background:rgba(0,0,0,.03); }
+    tbody td { padding:9px 10px; vertical-align:middle; }
+    .td-title { max-width:260px; }
+    .td-title span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .td-num { font-variant-numeric:tabular-nums; }
+    .td-eng { font-weight:700; color:var(--accent); }
+    .td-date { color:var(--muted); white-space:nowrap; }
+
+    /* ── Goals panel ───────────────────────────────────────── */
+    .goals-toggle {
+      display:flex; align-items:center; gap:8px;
+      cursor:pointer; font-size:13px; color:var(--muted);
+      user-select:none;
+    }
+    .goals-toggle:hover { color:var(--text); }
+    .goals-arrow { font-size:10px; transition:transform .2s; }
+    .goals-arrow.open { transform:rotate(90deg); }
+
+    .goals-grid {
+      display:none; grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px; margin-top:14px; padding-top:14px;
+      border-top:1px solid var(--border);
+    }
+    .goals-grid.open { display:grid; }
+    @media(max-width:700px) { .goals-grid { grid-template-columns:1fr 1fr; } }
+
+    .goals-field label {
+      display:block; color:var(--muted);
+      font-size:10px; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; margin-bottom:5px;
+    }
+    .goals-field input[type="number"],
+    .goals-field select {
+      width:100%; padding:8px 10px; border-radius:10px;
+      border:1px solid var(--border); background:rgba(0,0,0,.22);
+      color:var(--text); font-size:13px; outline:none;
+    }
+    .goals-field input[type="number"]:focus,
+    .goals-field select:focus { border-color:var(--primary); }
+    [data-theme="light"] .goals-field input[type="number"],
+    [data-theme="light"] .goals-field select { background:rgba(255,255,255,.88); }
+    .goals-hint { font-size:11px; color:var(--muted); margin-top:4px; }
+
+    .goal-item { margin-top:16px; }
+    .goal-item-label {
+      font-size:11px; font-weight:700; color:var(--muted);
+      text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px;
+    }
+    .goal-progress-track {
+      height:5px; background:rgba(255,255,255,.08);
+      border-radius:99px; overflow:hidden;
+    }
+    [data-theme="light"] .goal-progress-track { background:rgba(0,0,0,.08); }
+    .goal-progress-fill {
+      height:100%; border-radius:99px;
+      background:var(--primary); transition:width .4s ease;
+    }
+    .goal-progress-meta { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+    .goal-progress-pct { font-size:12px; font-weight:700; color:var(--text); }
+    .pace-badge {
+      font-size:10px; font-weight:700; letter-spacing:.4px;
+      padding:2px 8px; border-radius:99px;
+    }
+    .pace-ahead    { background:rgba(16,185,129,.18); color:var(--good); }
+    .pace-on-track { background:rgba(90,159,194,.18); color:var(--primary); }
+    .pace-watch    { background:rgba(245,158,11,.18); color:var(--warn); }
+    .pace-behind   { background:rgba(239,68,68,.18);  color:var(--bad); }
+
+    /* ── Loading ───────────────────────────────────────────── */
+    #loading {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; min-height:60vh; gap:16px;
+      color:var(--muted); font-size:14px;
+    }
+    .spinner {
+      width:40px; height:40px;
+      border:3px solid rgba(90,159,194,.2);
+      border-top-color:var(--primary);
+      border-radius:50%; animation:spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    #dashboard { display:none; }
+
+    /* ── Error ─────────────────────────────────────────────── */
+    #error-msg {
+      display:none; max-width:680px; margin:20px auto;
+      background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+      color:#fca5a5; padding:16px 20px; border-radius:12px; font-size:13px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div class="brand-text">
+      <div class="brand-title">TikTok Content Performance</div>
+      <div class="brand-subtitle">Maple &amp; Co. · Northwind Pulse</div>
+    </div>
+  </div>
+  <div class="scheme-pills">
+    <button class="scheme-pill active" data-scheme="creator" onclick="setScheme('creator',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#a855f7,#06b6d4)"></span>Creator
+    </button>
+    <button class="scheme-pill" data-scheme="slate" onclick="setScheme('slate',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#5a9fc2,#7b93b0)"></span>Slate
+    </button>
+    <button class="scheme-pill" data-scheme="ocean" onclick="setScheme('ocean',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)"></span>Ocean
+    </button>
+    <button class="scheme-pill" data-scheme="sunset" onclick="setScheme('sunset',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#f97316,#ec4899)"></span>Sunset
+    </button>
+    <button class="scheme-pill" data-scheme="forest" onclick="setScheme('forest',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#10b981,#34d399)"></span>Forest
+    </button>
+    <button class="scheme-pill" data-scheme="rose" onclick="setScheme('rose',this)">
+      <span class="scheme-swatch" style="background:linear-gradient(135deg,#e879f9,#a855f7)"></span>Rose
+    </button>
+  </div>
+  <div class="topbar-right">
+    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">&#9728;&#65039; Light</button>
+  </div>
+</div>
+
+<!-- Error (self-contained, max-width + margin) -->
+<div id="error-msg"></div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span>Loading TikTok content data...</span>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="container">
+
+    <!-- Profile strip -->
+    <div class="card">
+      <div class="profile-strip">
+        <div class="profile-icon">&#x1F3B5;</div>
+        <div class="profile-info">
+          <div class="profile-name" id="profile-name">Maple &amp; Co.</div>
+          <div class="profile-handle" id="profile-handle">@mapleandco_</div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="p-followers">-</div>
+            <div class="profile-stat-label">Followers</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="p-following">-</div>
+            <div class="profile-stat-label">Following</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="p-total-likes">-</div>
+            <div class="profile-stat-label">Total Likes</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-value" id="p-video-count">-</div>
+            <div class="profile-stat-label">Total Videos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <div class="card-title">Filters</div>
+      <div class="filters-grid">
+        <div class="field">
+          <label>Year</label>
+          <select id="f-year" onchange="applyFilters()">
+            <option value="">All Years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Month</label>
+          <select id="f-month" onchange="applyFilters()">
+            <option value="">All Months</option>
+          </select>
+        </div>
+        <button class="reset-btn" onclick="resetFilters()">&#x21BA; Reset</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="section-label">Content Performance</div>
+    <div class="kpi-row">
+      <div class="kpi-pill highlight">
+        <div class="kpi-label">Total Views</div>
+        <div class="kpi-value" id="kpi-views">-</div>
+        <div class="kpi-sub" id="kpi-views-sub">Filtered period</div>
+      </div>
+      <div class="kpi-pill highlight">
+        <div class="kpi-label">Total Likes</div>
+        <div class="kpi-value" id="kpi-likes">-</div>
+        <div class="kpi-sub" id="kpi-likes-sub">Filtered period</div>
+      </div>
+      <div class="kpi-pill accent">
+        <div class="kpi-label">Avg Engagement Rate</div>
+        <div class="kpi-value" id="kpi-eng">-</div>
+        <div class="kpi-sub" id="kpi-eng-sub">(Likes + Comments + Shares) / Views</div>
+      </div>
+      <div class="kpi-pill warn-pill">
+        <div class="kpi-label">Top Video Views</div>
+        <div class="kpi-value" id="kpi-top">-</div>
+        <div class="kpi-sub" id="kpi-top-sub">Best performing video</div>
+      </div>
+    </div>
+
+    <!-- Charts row: Views Over Time + Engagement Breakdown -->
+    <div class="chart-row-1-1">
+      <div class="card">
+        <div class="card-title">Views Over Time</div>
+        <div class="card-subtitle">Monthly total views</div>
+        <div class="chart-wrap">
+          <canvas id="chart-views"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Engagement Breakdown</div>
+        <div class="card-subtitle">Likes, Comments, Shares</div>
+        <div class="chart-wrap">
+          <canvas id="chart-engagement"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 10 Videos horizontal bar -->
+    <div class="card">
+      <div class="card-title">Top 10 Videos by Views</div>
+      <div class="card-subtitle">Filtered period - horizontal bars ranked by view count</div>
+      <div class="chart-wrap-lg">
+        <canvas id="chart-top-videos"></canvas>
+      </div>
+    </div>
+
+    <!-- Videos table -->
+    <div class="card">
+      <div class="card-title">All Videos</div>
+      <div class="card-subtitle" id="table-subtitle">Showing all videos - click column headers to sort</div>
+      <div class="table-wrap">
+        <table id="videos-table">
+          <thead>
+            <tr>
+              <th data-col="title"    onclick="sortTable('title')">Title <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="views"    onclick="sortTable('views')"   class="sorted">Views <span class="sort-icon">&#x25BE;</span></th>
+              <th data-col="likes"    onclick="sortTable('likes')">Likes <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="comments" onclick="sortTable('comments')">Comments <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="shares"   onclick="sortTable('shares')">Shares <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="engRate"  onclick="sortTable('engRate')">Eng Rate <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="duration" onclick="sortTable('duration')">Duration <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+              <th data-col="date"     onclick="sortTable('date')">Date <span class="sort-icon">&#x25B4;&#x25BE;</span></th>
+            </tr>
+          </thead>
+          <tbody id="videos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Goals & Targets collapsible -->
+    <div class="card">
+      <div class="goals-toggle" onclick="toggleGoals()">
+        <span class="goals-arrow" id="goals-arrow">&#9654;</span>
+        <span>&#127919; Goals &amp; Targets</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">- set view and engagement targets; pace indicators update automatically</span>
+      </div>
+      <div class="goals-grid" id="goals-panel">
+        <div class="goals-field">
+          <label>Timeframe</label>
+          <select id="g-timeframe" onchange="saveGoals(); renderGoals()">
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <div class="goals-hint">Applies to attainment and pace calculation</div>
+        </div>
+        <div class="goals-field">
+          <label>View Target</label>
+          <input type="number" id="g-views" placeholder="e.g. 50000" min="0" oninput="saveGoals(); renderGoals()">
+          <div class="goals-hint">Total views goal for selected timeframe</div>
+        </div>
+        <div class="goals-field">
+          <label>Engagement Rate Target (%)</label>
+          <input type="number" id="g-eng" placeholder="e.g. 5.0" min="0" step="0.1" oninput="saveGoals(); renderGoals()">
+          <div class="goals-hint">Average engagement rate % goal</div>
+        </div>
+
+        <!-- Progress bars rendered here -->
+        <div id="goal-views-item" class="goal-item" style="display:none">
+          <div class="goal-item-label">Views Progress</div>
+          <div class="goal-progress-track">
+            <div class="goal-progress-fill" id="goal-views-fill" style="width:0%"></div>
+          </div>
+          <div class="goal-progress-meta">
+            <span class="goal-progress-pct" id="goal-views-pct">0%</span>
+            <span class="pace-badge" id="goal-views-pace"></span>
+          </div>
+        </div>
+        <div id="goal-eng-item" class="goal-item" style="display:none">
+          <div class="goal-item-label">Engagement Rate Progress</div>
+          <div class="goal-progress-track">
+            <div class="goal-progress-fill" id="goal-eng-fill" style="width:0%"></div>
+          </div>
+          <div class="goal-progress-meta">
+            <span class="goal-progress-pct" id="goal-eng-pct">0%</span>
+            <span class="pace-badge" id="goal-eng-pace"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.container -->
+</div><!-- /#dashboard -->
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const WORKER       = 'https://northwind-data-worker.northwindconsultinginc.workers.dev';
+const CLIENT_ID    = 'demo'; // swap to client's ID for live deployments
+const LS_THEME     = 'tt-theme';
+const LS_SCHEME    = 'tt-scheme';
+const LS_SORT_COL  = 'tt-sort-col';
+const LS_SORT_DIR  = 'tt-sort-dir';
+const LS_TARGETS   = 'tt-targets';
+
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun',
+                     'Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let _allRows  = [];
+let _filtered = [];
+let _profile  = {};
+let _fo       = { years:[], months:[] };
+
+let _sortCol = localStorage.getItem(LS_SORT_COL) || 'views';
+let _sortDir = localStorage.getItem(LS_SORT_DIR) || 'desc';
+
+let _chartViews      = null;
+let _chartEngagement = null;
+let _chartTopVideos  = null;
+
+// ── Theme + scheme init (before render to avoid flash) ────────────────────────
+(function initVisuals() {
+  const savedTheme  = localStorage.getItem(LS_THEME)  || 'dark';
+  const savedScheme = localStorage.getItem(LS_SCHEME) || 'creator';
+  applyTheme(savedTheme, true);
+  applyScheme(savedScheme, true);
+})();
+
+// ── Theme helpers ─────────────────────────────────────────────────────────────
+function applyTheme(mode, silent) {
+  document.documentElement.setAttribute('data-theme', mode);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = mode === 'dark' ? '\u2600\uFE0F Light' : '\uD83C\uDF19 Dark';
+  if (!silent) {
+    localStorage.setItem(LS_THEME, mode);
+    window.parent.postMessage({ type: 'nwp-sidebar-theme', mode }, '*');
+    redrawCharts();
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// ── Scheme helpers ────────────────────────────────────────────────────────────
+function applyScheme(scheme, silent) {
+  document.documentElement.className = document.documentElement.className
+    .replace(/scheme-\S+/g, '').trim();
+  if (scheme && scheme !== 'creator') {
+    document.documentElement.classList.add('scheme-' + scheme);
+  } else if (scheme === 'creator') {
+    document.documentElement.classList.add('scheme-creator');
+  }
+  document.querySelectorAll('.scheme-pill').forEach(function(p) {
+    p.classList.toggle('active', p.dataset.scheme === scheme);
+  });
+  if (!silent) {
+    localStorage.setItem(LS_SCHEME, scheme);
+    redrawCharts();
+  }
+}
+
+function setScheme(scheme, el) {
+  applyScheme(scheme);
+}
+
+// ── Listen for theme from parent (Tools Suite) ────────────────────────────────
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'nwp-theme') applyTheme(e.data.mode);
+});
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  fetch(WORKER + '/data/' + CLIENT_ID + '/tiktok')
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(onData)
+    .catch(onError);
+});
+
+function onData(data) {
+  if (data.error) { onError(new Error(data.error)); return; }
+
+  _profile = data.profile || {};
+
+  // Normalize Worker video objects into row objects expected by the renderer
+  var videos = data.videos || [];
+  _allRows = videos.map(function(v) {
+    var d    = new Date(v.create_time);
+    var yr   = String(d.getFullYear());
+    var mo   = String(d.getMonth() + 1).padStart(2, '0');
+    var mKey = yr + '-' + mo.padStart(2, '0');
+    var mLbl = MONTH_NAMES[d.getMonth()] + ' ' + yr;
+    var dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    var views    = v.view_count    || 0;
+    var likes    = v.like_count    || 0;
+    var comments = v.comment_count || 0;
+    var shares   = v.share_count   || 0;
+    var engRate  = views > 0 ? ((likes + comments + shares) / views * 100) : 0;
+    return {
+      id:       v.id || '',
+      title:    v.description || '',
+      views:    views,
+      likes:    likes,
+      comments: comments,
+      shares:   shares,
+      engRate:  engRate,
+      duration: v.duration || 0,
+      date:     dateStr,
+      yr:       yr,
+      mo:       mo,
+      mKey:     mKey,
+      mLabel:   mLbl,
+      shareUrl: v.share_url || '',
+    };
+  });
+
+  // Derive filter options from the normalized rows
+  var yearSet  = {};
+  var monthSet = {};
+  _allRows.forEach(function(r) {
+    yearSet[r.yr]   = true;
+    monthSet[r.mKey] = r.mLabel;
+  });
+  var years = Object.keys(yearSet).sort();
+  var monthKeys = Object.keys(monthSet).sort();
+  _fo = {
+    years: years,
+    months: monthKeys.map(function(k) { return { value: k.split('-')[1], label: monthSet[k] }; }),
+  };
+
+  populateProfile();
+  populateFilters();
+  applyFilters();
+
+  document.getElementById('loading').style.display   = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+
+  loadGoals();
+}
+
+function onError(err) {
+  document.getElementById('loading').style.display = 'none';
+  const el = document.getElementById('error-msg');
+  el.style.display = 'block';
+  el.textContent   = 'Failed to load data: ' + (err.message || err);
+}
+
+// ── Profile strip ─────────────────────────────────────────────────────────────
+function populateProfile() {
+  const p = _profile;
+  setText('profile-name',    p.display_name   || 'Maple & Co.');
+  var handle = p.handle || (p.profile_url ? p.profile_url.replace('https://www.tiktok.com/', '') : '@mapleandco_');
+  setText('profile-handle',  handle);
+  setText('p-followers',     fmtNum(p.follower_count  || 0));
+  setText('p-following',     fmtNum(p.following_count || 0));
+  setText('p-total-likes',   fmtNum(p.likes_count     || 0));
+  setText('p-video-count',   fmtNum(p.video_count     || 0));
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function populateFilters() {
+  const fy = document.getElementById('f-year');
+  const fm = document.getElementById('f-month');
+
+  _fo.years.forEach(function(y) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    fy.appendChild(o);
+  });
+
+  _fo.months.forEach(function(m) {
+    const o = document.createElement('option');
+    o.value = m.value; o.textContent = m.label;
+    fm.appendChild(o);
+  });
+}
+
+function applyFilters() {
+  const yr = document.getElementById('f-year').value;
+  const mo = document.getElementById('f-month').value;
+
+  _filtered = _allRows.filter(function(r) {
+    if (yr && r.yr !== yr) return false;
+    if (mo && r.mo !== mo) return false;
+    return true;
+  });
+
+  render();
+}
+
+function resetFilters() {
+  document.getElementById('f-year').value  = '';
+  document.getElementById('f-month').value = '';
+  applyFilters();
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render() {
+  renderKPIs();
+  renderViewsChart();
+  renderEngagementChart();
+  renderTopVideosChart();
+  renderTable();
+  renderGoals();
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function renderKPIs() {
+  const rows = _filtered;
+
+  const totalViews  = rows.reduce(function(s,r){ return s + r.views; }, 0);
+  const totalLikes  = rows.reduce(function(s,r){ return s + r.likes; }, 0);
+  const topViews    = rows.length ? Math.max.apply(null, rows.map(function(r){ return r.views; })) : 0;
+
+  // Avg engagement rate: average of each video's individual engagement rate
+  const avgEng = rows.length
+    ? rows.reduce(function(s,r){ return s + r.engRate; }, 0) / rows.length
+    : 0;
+
+  // Prior period delta (compare same number of videos in reverse chronological order)
+  const half   = Math.floor(rows.length / 2);
+  const sorted = rows.slice().sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+  const recent = sorted.slice(half);
+  const prior  = sorted.slice(0, half);
+  const recentViews = recent.reduce(function(s,r){ return s + r.views; }, 0);
+  const priorViews  = prior.reduce(function(s,r){ return s + r.views; }, 0);
+
+  setText('kpi-views', fmtNum(totalViews));
+  setText('kpi-likes', fmtNum(totalLikes));
+  setText('kpi-eng',   avgEng.toFixed(1) + '%');
+  setText('kpi-top',   fmtNum(topViews));
+
+  // Delta badge on views
+  const viewsDelta = deltaHtml(recentViews, priorViews);
+  const viewsSub   = document.getElementById('kpi-views-sub');
+  viewsSub.innerHTML = rows.length + ' video' + (rows.length !== 1 ? 's' : '') + viewsDelta;
+
+  setText('kpi-likes-sub',  fmtNum(rows.reduce(function(s,r){ return s + r.comments; }, 0)) + ' comments');
+  setText('kpi-eng-sub',    'Across ' + rows.length + ' video' + (rows.length !== 1 ? 's' : ''));
+
+  const topVideo = rows.length ? rows.reduce(function(best,r){ return r.views > best.views ? r : best; }, rows[0]) : null;
+  setText('kpi-top-sub', topVideo ? truncate(topVideo.title, 32) : '-');
+}
+
+function deltaHtml(current, prior) {
+  if (!prior) return '';
+  const pct  = ((current - prior) / prior * 100);
+  const sign  = pct >= 0 ? '+' : '';
+  const cls   = pct >= 2 ? 'up' : pct <= -2 ? 'down' : 'flat';
+  const arrow  = pct >= 2 ? '&#9650;' : pct <= -2 ? '&#9660;' : '&#9644;';
+  return ' <span class="delta ' + cls + '">' + arrow + ' ' + sign + pct.toFixed(1) + '%</span>';
+}
+
+// ── Views over time chart (bar) ───────────────────────────────────────────────
+function renderViewsChart() {
+  // Aggregate by month key
+  const buckets = {};
+  _filtered.forEach(function(r) {
+    if (!r.mKey) return;
+    if (!buckets[r.mKey]) buckets[r.mKey] = { label: r.mLabel, views: 0 };
+    buckets[r.mKey].views += r.views;
+  });
+
+  const keys   = Object.keys(buckets).sort();
+  const labels = keys.map(function(k){ return buckets[k].label; });
+  const values = keys.map(function(k){ return buckets[k].views; });
+
+  const primary = getCSSVar('--primary');
+
+  if (_chartViews) {
+    _chartViews.data.labels   = labels;
+    _chartViews.data.datasets[0].data = values;
+    _chartViews.data.datasets[0].backgroundColor = primary + 'bf'; // ~75% opacity
+    _chartViews.data.datasets[0].borderColor      = primary;
+    _chartViews.update();
+    return;
+  }
+
+  _chartViews = new Chart(document.getElementById('chart-views'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Views',
+        data: values,
+        backgroundColor: primary + 'bf',
+        borderColor: primary,
+        borderWidth: 1.5,
+        borderRadius: 5,
+      }]
+    },
+    options: chartBaseOptions('Views'),
+  });
+}
+
+// ── Engagement breakdown doughnut ─────────────────────────────────────────────
+function renderEngagementChart() {
+  const totalLikes    = _filtered.reduce(function(s,r){ return s + r.likes;    }, 0);
+  const totalComments = _filtered.reduce(function(s,r){ return s + r.comments; }, 0);
+  const totalShares   = _filtered.reduce(function(s,r){ return s + r.shares;   }, 0);
+
+  const primary = getCSSVar('--primary');
+  const accent  = getCSSVar('--accent');
+  const warn    = getCSSVar('--warn');
+
+  const newData   = [totalLikes, totalComments, totalShares];
+  const newColors = [primary, accent, warn];
+
+  if (_chartEngagement) {
+    _chartEngagement.data.datasets[0].data            = newData;
+    _chartEngagement.data.datasets[0].backgroundColor = newColors;
+    _chartEngagement.update();
+    return;
+  }
+
+  _chartEngagement = new Chart(document.getElementById('chart-engagement'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Likes', 'Comments', 'Shares'],
+      datasets: [{
+        data: newData,
+        backgroundColor: newColors,
+        borderWidth: 0,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            color: getCSSVar('--muted'),
+            font: { size: 11, weight: '600' },
+            padding: 14,
+            boxWidth: 12,
+            usePointStyle: true,
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(8,14,28,.92)',
+          titleColor: '#e7ecff',
+          bodyColor: '#a7b1d6',
+          borderColor: 'rgba(255,255,255,.1)',
+          borderWidth: 1,
+          callbacks: {
+            label: function(ctx) {
+              const total = ctx.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+              const pct   = total ? ((ctx.raw / total) * 100).toFixed(1) : '0.0';
+              return ' ' + ctx.label + ': ' + fmtNum(ctx.raw) + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Top 10 videos horizontal bar ──────────────────────────────────────────────
+function renderTopVideosChart() {
+  const top10 = _filtered.slice()
+    .sort(function(a,b){ return b.views - a.views; })
+    .slice(0, 10);
+
+  const labels = top10.map(function(r){ return truncate(r.title, 38); });
+  const values = top10.map(function(r){ return r.views; });
+  const primary = getCSSVar('--primary');
+
+  if (_chartTopVideos) {
+    _chartTopVideos.data.labels = labels;
+    _chartTopVideos.data.datasets[0].data            = values;
+    _chartTopVideos.data.datasets[0].backgroundColor = primary + '99';
+    _chartTopVideos.data.datasets[0].borderColor     = primary;
+    _chartTopVideos.update();
+    return;
+  }
+
+  _chartTopVideos = new Chart(document.getElementById('chart-top-videos'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Views',
+        data: values,
+        backgroundColor: primary + '99',
+        borderColor: primary,
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(8,14,28,.92)',
+          titleColor: '#e7ecff',
+          bodyColor: '#a7b1d6',
+          borderColor: 'rgba(255,255,255,.1)',
+          borderWidth: 1,
+          callbacks: {
+            label: function(ctx) { return ' ' + fmtNum(ctx.raw) + ' views'; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid:  { color: 'rgba(255,255,255,.06)' },
+          ticks: { color: getCSSVar('--muted'), font: { size: 11 },
+                   callback: function(v){ return fmtNum(v); } },
+        },
+        y: {
+          grid:  { display: false },
+          ticks: { color: getCSSVar('--text'), font: { size: 11 } },
+        }
+      }
+    }
+  });
+}
+
+// ── Videos table ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const rows = _filtered.slice().sort(function(a, b) {
+    const av = a[_sortCol], bv = b[_sortCol];
+    if (typeof av === 'string') {
+      return _sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    }
+    return _sortDir === 'asc' ? av - bv : bv - av;
+  });
+
+  // Update header sort indicators
+  document.querySelectorAll('thead th').forEach(function(th) {
+    th.classList.remove('sorted');
+    const icon = th.querySelector('.sort-icon');
+    if (icon) icon.innerHTML = '&#x25B4;&#x25BE;';
+    if (th.dataset.col === _sortCol) {
+      th.classList.add('sorted');
+      if (icon) icon.innerHTML = _sortDir === 'asc' ? '&#x25B4;' : '&#x25BE;';
+    }
+  });
+
+  const tbody = document.getElementById('videos-tbody');
+  tbody.innerHTML = '';
+  rows.forEach(function(r) {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="td-title"><span title="' + escHtml(r.title) + '">' + escHtml(truncate(r.title, 50)) + '</span></td>' +
+      '<td class="td-num">'  + fmtNum(r.views)               + '</td>' +
+      '<td class="td-num">'  + fmtNum(r.likes)               + '</td>' +
+      '<td class="td-num">'  + fmtNum(r.comments)            + '</td>' +
+      '<td class="td-num">'  + fmtNum(r.shares)              + '</td>' +
+      '<td class="td-eng">'  + r.engRate.toFixed(1) + '%'    + '</td>' +
+      '<td class="td-num">'  + fmtDuration(r.duration)       + '</td>' +
+      '<td class="td-date">' + (r.date || '-')               + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  const sub = document.getElementById('table-subtitle');
+  sub.textContent = 'Showing ' + rows.length + ' video' + (rows.length !== 1 ? 's' : '') +
+    ' - click column headers to sort';
+}
+
+function sortTable(col) {
+  if (_sortCol === col) {
+    _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    _sortCol = col;
+    _sortDir = col === 'title' ? 'asc' : 'desc';
+  }
+  localStorage.setItem(LS_SORT_COL, _sortCol);
+  localStorage.setItem(LS_SORT_DIR, _sortDir);
+  renderTable();
+}
+
+// ── Goals panel ───────────────────────────────────────────────────────────────
+function toggleGoals() {
+  const panel = document.getElementById('goals-panel');
+  const arrow = document.getElementById('goals-arrow');
+  const open  = panel.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
+
+function saveGoals() {
+  const g = {
+    timeframe: document.getElementById('g-timeframe').value,
+    views:     document.getElementById('g-views').value,
+    eng:       document.getElementById('g-eng').value,
+  };
+  localStorage.setItem(LS_TARGETS, JSON.stringify(g));
+}
+
+function loadGoals() {
+  try {
+    const g = JSON.parse(localStorage.getItem(LS_TARGETS) || '{}');
+    if (g.timeframe) document.getElementById('g-timeframe').value = g.timeframe;
+    if (g.views)     document.getElementById('g-views').value     = g.views;
+    if (g.eng)       document.getElementById('g-eng').value       = g.eng;
+  } catch(e) {}
+}
+
+function renderGoals() {
+  const viewsTarget = parseFloat(document.getElementById('g-views').value) || 0;
+  const engTarget   = parseFloat(document.getElementById('g-eng').value)   || 0;
+  const timeframe   = document.getElementById('g-timeframe').value || 'monthly';
+
+  const rows = _filtered;
+  const totalViews = rows.reduce(function(s,r){ return s + r.views; }, 0);
+  const avgEng     = rows.length ? rows.reduce(function(s,r){ return s + r.engRate; }, 0) / rows.length : 0;
+
+  // Scale actual for timeframe
+  const months = uniqueMonths(rows);
+  const mCount = months.length || 1;
+  let divisor  = 1;
+  if (timeframe === 'monthly')   divisor = mCount;
+  if (timeframe === 'quarterly') divisor = Math.max(1, mCount / 3);
+  if (timeframe === 'annual')    divisor = Math.max(1, mCount / 12);
+
+  const periodViews = totalViews / divisor;
+  const periodEng   = avgEng; // Eng rate doesn't scale
+
+  renderGoalBar('goal-views', viewsTarget, periodViews, timeframe, 'views');
+  renderGoalBar('goal-eng',   engTarget,   periodEng,   timeframe, 'eng');
+}
+
+function renderGoalBar(id, target, actual, timeframe, type) {
+  const item  = document.getElementById(id + '-item');
+  const fill  = document.getElementById(id + '-fill');
+  const pct   = document.getElementById(id + '-pct');
+  const pace  = document.getElementById(id + '-pace');
+
+  if (!target) {
+    item.style.display = 'none';
+    return;
+  }
+  item.style.display = 'block';
+
+  const attain = Math.min(actual / target * 100, 100);
+  fill.style.width = attain.toFixed(1) + '%';
+  pct.textContent  = (type === 'eng' ? actual.toFixed(1) + '% / ' + target + '%' :
+                      fmtNum(Math.round(actual)) + ' / ' + fmtNum(target));
+
+  const ratio = actual / target;
+  let badgeClass = 'pace-behind';
+  let badgeText  = '\u2193 Behind';
+  if (ratio >= 1.05) { badgeClass = 'pace-ahead';    badgeText = '\u25B2 Ahead'; }
+  else if (ratio >= 0.9) { badgeClass = 'pace-on-track'; badgeText = '\u2713 On Track'; }
+  else if (ratio >= 0.7) { badgeClass = 'pace-watch';    badgeText = '\u26A0 Watch'; }
+
+  pace.className   = 'pace-badge ' + badgeClass;
+  pace.textContent = badgeText;
+}
+
+function uniqueMonths(rows) {
+  const s = new Set();
+  rows.forEach(function(r){ if(r.mKey) s.add(r.mKey); });
+  return [...s];
+}
+
+// ── Chart helpers ─────────────────────────────────────────────────────────────
+function chartBaseOptions(yLabel) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(8,14,28,.92)',
+        titleColor: '#e7ecff',
+        bodyColor: '#a7b1d6',
+        borderColor: 'rgba(255,255,255,.1)',
+        borderWidth: 1,
+        callbacks: {
+          label: function(ctx) { return ' ' + fmtNum(ctx.raw) + ' ' + yLabel.toLowerCase(); }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid:  { display: false },
+        ticks: { color: getCSSVar('--muted'), font: { size: 11 } },
+      },
+      y: {
+        grid:  { color: 'rgba(255,255,255,.06)' },
+        ticks: { color: getCSSVar('--muted'), font: { size: 11 },
+                 callback: function(v){ return fmtNum(v); } },
+        beginAtZero: true,
+      }
+    }
+  };
+}
+
+function redrawCharts() {
+  if (_filtered.length === 0) return;
+  // Destroy and re-render to pick up new CSS variable values
+  if (_chartViews)      { _chartViews.destroy();      _chartViews      = null; }
+  if (_chartEngagement) { _chartEngagement.destroy(); _chartEngagement = null; }
+  if (_chartTopVideos)  { _chartTopVideos.destroy();  _chartTopVideos  = null; }
+  renderViewsChart();
+  renderEngagementChart();
+  renderTopVideosChart();
+}
+
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+function fmtNum(n) {
+  n = Number(n);
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '')    + 'K';
+  return n.toLocaleString();
+}
+
+function fmtDuration(sec) {
+  sec = Number(sec) || 0;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m > 0) return m + 'm ' + s + 's';
+  return s + 's';
+}
+
+function truncate(str, len) {
+  if (!str) return '';
+  return str.length > len ? str.slice(0, len) + '...' : str;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+</script>
+</body>
+</html>
