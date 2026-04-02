@@ -216,6 +216,81 @@
       font-size:10px; font-weight:700; letter-spacing:.5px;
       text-transform:uppercase; color:var(--muted); margin-bottom:6px;
     }
+    .info-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 0 0 4px;
+      line-height: 1;
+      opacity: 0.7;
+      transition: opacity .15s, color .15s;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+    }
+    .info-btn:hover { opacity: 1; color: var(--primary); }
+    .kpi-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .kpi-modal-overlay.open { display: flex; }
+    .kpi-modal {
+      background: #111827;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      padding: 24px 28px;
+      max-width: 420px;
+      width: calc(100% - 40px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      position: relative;
+    }
+    [data-theme="light"] .kpi-modal {
+      background: #ffffff;
+      border-color: rgba(0,0,0,.12);
+      box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    }
+    .kpi-modal-close {
+      position: absolute;
+      top: 12px; right: 16px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+    .kpi-modal-close:hover { color: var(--text); }
+    .kpi-modal-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 14px;
+      padding-right: 24px;
+    }
+    .kpi-modal-section { margin-bottom: 12px; }
+    .kpi-modal-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .kpi-modal-section-body {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    [data-theme="light"] .kpi-modal { color: #1a2142; }
+    [data-theme="light"] .kpi-modal-section-body { color: #1a2142; }
     .kpi-value { font-size:22px; font-weight:800; line-height:1; color:var(--text); }
     .kpi-sub { font-size:11px; color:var(--muted); margin-top:4px; }
 
@@ -454,22 +529,22 @@
     <div class="section-label">Content Performance</div>
     <div class="kpi-row">
       <div class="kpi-pill highlight">
-        <div class="kpi-label">Total Views</div>
+        <div class="kpi-label">Total Views <button class="info-btn" onclick="showKpiInfo('views')">ⓘ</button></div>
         <div class="kpi-value" id="kpi-views">-</div>
         <div class="kpi-sub" id="kpi-views-sub">Filtered period</div>
       </div>
       <div class="kpi-pill highlight">
-        <div class="kpi-label">Total Likes</div>
+        <div class="kpi-label">Total Likes <button class="info-btn" onclick="showKpiInfo('likes')">ⓘ</button></div>
         <div class="kpi-value" id="kpi-likes">-</div>
         <div class="kpi-sub" id="kpi-likes-sub">Filtered period</div>
       </div>
       <div class="kpi-pill accent">
-        <div class="kpi-label">Avg Engagement Rate</div>
+        <div class="kpi-label">Avg Engagement Rate <button class="info-btn" onclick="showKpiInfo('eng-rate')">ⓘ</button></div>
         <div class="kpi-value" id="kpi-eng">-</div>
         <div class="kpi-sub" id="kpi-eng-sub">(Likes + Comments + Shares) / Views</div>
       </div>
       <div class="kpi-pill warn-pill">
-        <div class="kpi-label">Top Video Views</div>
+        <div class="kpi-label">Top Video Views <button class="info-btn" onclick="showKpiInfo('top-views')">ⓘ</button></div>
         <div class="kpi-value" id="kpi-top">-</div>
         <div class="kpi-sub" id="kpi-top-sub">Best performing video</div>
       </div>
@@ -1232,5 +1307,41 @@ function setText(id, val) {
   if (el) el.textContent = val;
 }
 </script>
+
+    <div class="kpi-modal-overlay" id="kpiModal" onclick="hideKpiInfo()">
+      <div class="kpi-modal" onclick="event.stopPropagation()">
+        <button class="kpi-modal-close" onclick="hideKpiInfo()">×</button>
+        <div class="kpi-modal-title" id="kpiModalTitle"></div>
+        <div id="kpiModalBody"></div>
+      </div>
+    </div>
+
+    <script>
+    const KPI_INFO = {
+      'views':     { title: 'Total Views',            def: 'The total number of times your TikTok videos were viewed in the selected period. A view is counted when someone watches at least 1 second of your video.',                                                                                                                    benchmark: 'View counts vary enormously by follower count and content type. A rough guide: for accounts under 50k followers, average 500-5,000 views per video is healthy. Viral content can spike 10-100x above your average.',                                                                               action: 'If views are declining, TikTok may be distributing your content to a smaller audience — try experimenting with different post times, hook styles, and content formats. The first 2-3 seconds of a video determine most of its reach.' },
+      'likes':     { title: 'Total Likes',            def: 'Total number of likes across all posts in the selected period. Likes are the most common engagement action on TikTok and a direct signal that content resonated.',                                                                                                           benchmark: 'A healthy like-to-view ratio is 3-8%. Under 2% means the content is being watched but not resonating emotionally. Over 10% is strong — that content has a clear hook or emotional pull.',                                                                                                          action: 'To increase likes: create content with a clear payoff (the reveal, the transformation, the result), use on-screen text CTAs like "like this if you agree," and study which of your past videos got the highest like rates to identify patterns.' },
+      'eng-rate':  { title: 'Avg Engagement Rate',    def: 'Calculated as (likes + comments + shares) divided by views, expressed as a percentage. This is the single most important metric for understanding whether your content is connecting with viewers.',                                                                          benchmark: 'Under 3%: below average — content may be reaching the wrong audience or lacking a compelling hook. 3-6%: average for TikTok creators. 6-10%: strong. 10%+: viral-tier content. Engagement rate matters more than raw view counts for long-term growth.',                                           action: 'To improve engagement rate: focus on content that sparks a reaction (agreement, surprise, humor, or desire), ask a question in the caption to drive comments, and create content that people want to share with friends.' },
+      'top-views': { title: 'Top Video Views',        def: 'The view count of your single best-performing video in the selected period. This is a signal of your content ceiling — what your best content can achieve.',                                                                                                                  benchmark: 'Your top video should significantly outperform your average. If your top video is only 2-3x your average, you have not had a breakout yet. If it is 10x+ your average, study exactly what made it different.',                                                                                      action: 'After every high-performing video, do a content autopsy: what was the hook, what format was it (voiceover vs. talking head vs. text only), what topic, what time was it posted? Repeat those elements in future content.' },
+    };
+
+    function showKpiInfo(key) {
+      const d = KPI_INFO[key];
+      if (!d) return;
+      document.getElementById('kpiModalTitle').textContent = d.title;
+      document.getElementById('kpiModalBody').innerHTML =
+        '<div class="kpi-modal-section"><div class="kpi-modal-section-label">What it is</div><div class="kpi-modal-section-body">' + d.def + '</div></div>' +
+        '<div class="kpi-modal-section"><div class="kpi-modal-section-label">Industry benchmark</div><div class="kpi-modal-section-body">' + d.benchmark + '</div></div>' +
+        '<div class="kpi-modal-section"><div class="kpi-modal-section-label">What to do</div><div class="kpi-modal-section-body">' + d.action + '</div></div>';
+      document.getElementById('kpiModal').classList.add('open');
+    }
+
+    function hideKpiInfo() {
+      document.getElementById('kpiModal').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') hideKpiInfo();
+    });
+    </script>
 </body>
 </html>
