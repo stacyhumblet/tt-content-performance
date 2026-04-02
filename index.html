@@ -1276,6 +1276,7 @@ function getCSSVar(name) {
 // ── Formatters ────────────────────────────────────────────────────────────────
 function fmtNum(n) {
   n = Number(n);
+  if (!isFinite(n) || isNaN(n)) return '—';
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '')    + 'K';
   return n.toLocaleString();
