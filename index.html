@@ -667,6 +667,7 @@ const LS_TARGETS   = 'tt-targets';
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun',
                      'Jul','Aug','Sep','Oct','Nov','Dec'];
+const NEUTRAL_PALETTE = ['#475569','#64748b','#78909c','#94a3b8','#6b7280','#9ca3af','#b0bec5','#adb5bd'];
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let _allRows  = [];
@@ -964,11 +965,9 @@ function renderEngagementChart() {
   const totalShares   = _filtered.reduce(function(s,r){ return s + r.shares;   }, 0);
 
   const primary = getCSSVar('--primary');
-  const accent  = getCSSVar('--accent');
-  const warn    = getCSSVar('--warn');
 
   const newData   = [totalLikes, totalComments, totalShares];
-  const newColors = [primary, accent, warn];
+  const newColors = [primary, NEUTRAL_PALETTE[0], NEUTRAL_PALETTE[1]];
 
   if (_chartEngagement) {
     _chartEngagement.data.datasets[0].data            = newData;
